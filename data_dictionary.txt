@@ -1,3 +1,5 @@
+This is a rough copy and paste from the pdf file regarding terminology and feature names.
+
 surface
 one of ‘hard’, ‘clay’ or ‘grass’
 
