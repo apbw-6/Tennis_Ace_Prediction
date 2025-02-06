@@ -1,0 +1,50 @@
+surface
+one of ‘hard’, ‘clay’ or ‘grass’
+
+serve_side
+one of 'deuce', 'ad'
+
+serve_number
+1 if first serve, 2 if second serve
+
+ball_hit_y
+y co-ordinate of the ball at its hit point
+ball_hit_x
+x co-ordinate of the ball at its hit point
+ball_hit_z
+z co-ordinate of the ball at its hit point (see notes)
+
+ball_hit_v
+speed (mph) of the ball at its hit point
+ball_net_v
+speed (mph) of the ball at the moment it crosses the net
+ball_net_z
+z co-ordinate of the ball at the moment it crosses the net
+ball_net_y
+y co-ordinate of the ball at the moment it crosses the net
+
+ball_bounce_x
+x co-ordinate of the ball bounce position
+ball_bounce_y
+y co-ordinate of the ball bounce position
+ball_bounce_v
+speed (mph) of the ball immediately after its bounce
+ball_bounce_angle
+angle of ball (degrees) to the ground immediately after its bounce
+
+hitter_x
+x co-ordinate of hitter at the moment the ball is hit (see notes)
+hitter_y
+y co-ordinate of hitter at the moment the ball is hit (see notes)
+receiver_x
+x co-ordinate of receiver at the moment the ball is hit (see notes)
+receiver_y
+y co-ordinate of receiver at the moment the ball is hit (see notes)
+
+hitter_hand
+dominant hand of hitter, one of ‘right’, ‘left’
+receiver_hand
+dominant hand of receiver, one of ‘right’, ‘left’
+
+is_ace
+1 if the serve results in an ace, 0 otherwise
