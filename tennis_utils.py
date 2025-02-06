@@ -1,4 +1,4 @@
-import seaborn as sns
+#import seaborn as sns
 import matplotlib.pyplot as plt
 
 def draw_tennis_court(ax=None):
@@ -10,8 +10,8 @@ def draw_tennis_court(ax=None):
         fig, ax = plt.subplots(figsize=(12, 6))
     
     # Court dimensions
-    court_length = 23.77  # Full length (x-axis)
-    court_width = 10.97  # Full doubles width (y-axis)
+    #court_length = 23.77  # Full length (x-axis)
+    #court_width = 10.97  # Full doubles width (y-axis)
 
     # Net at x=0, baselines at ±11.885m
     baseline_x = 11.885
