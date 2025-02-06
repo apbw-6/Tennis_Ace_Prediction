@@ -2,8 +2,6 @@ import pandas as pd
 import numpy as np
 from sklearn.impute import SimpleImputer
 
-
-
 def clean_dataframe(df):
     """
     - Drop duplicates.
