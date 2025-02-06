@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import OneHotEncoder
 
 def clean_dataframe(df):
     """
@@ -112,5 +113,13 @@ def clean_dataframe(df):
     
     # Impute missing values with column mean (only for numeric columns)
     df.fillna(df.mean(numeric_only=True), inplace=True)
+    
+    return df
+
+
+###############################
+# Feature engineering
+
+def feature_engineer(df_train, df_test):
     
     return df
