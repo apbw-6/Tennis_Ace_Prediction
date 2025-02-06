@@ -6,6 +6,7 @@ from sklearn.impute import SimpleImputer
 
 def clean_dataframe(df):
     """
+    - Drop duplicates.
     - z-coordinate cannot be negative.
     - It is not possible that the server and the receiver are on the same side of the court. These points must be deleted.
     - It is not possible that the server and the ball bounce is on the same side of the court. These points must be deleted.
@@ -26,6 +27,9 @@ def clean_dataframe(df):
     baseline_x = 11.885
     service_line_x = 6.4
     singles_sideline_y = 4.115 
+    
+    # Remove duplicate rows
+    df = df.drop_duplicates()
     
     # z-coordinates cannot be negative at all.
     df = df[(df["ball_hit_z"] >= 0) & (df["ball_net_z"] >= 0)]
