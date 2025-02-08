@@ -2,7 +2,20 @@ import pandas as pd
 import numpy as np
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.model_selection import train_test_split
 import joblib
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import RobustScaler, StandardScaler
+
+# Constants
+baseline_x = 11.885
+service_line_x = 6.4
+singles_sideline_y = 4.115
+tolerance = 0.10  # Setting tolerance of 10cm (for new features)
+
+#############################################################################################
+# DATA CLEANING
+#############################################################################################
 
 def clean_dataframe(df):
     """
@@ -123,9 +136,100 @@ def clean_dataframe(df):
     return df
 
 
-###############################
-# Feature engineering
-
+#############################################################################################
+# FEATURE ENGINEERING
+#############################################################################################
 def feature_engineer(df):
+    #----------------------------------------------------------------------------------------
+    # One hot encoding 
+    #----------------------------------------------------------------------------------------
+    # Load encoder
+    loaded_encoder = joblib.load("one_hot_encoder.pkl")
+    # Transform data
+    processed_data = loaded_encoder.transform(df)
+    # Get clean feature names by removing 'cat__' and 'remainder__'
+    original_feature_names = loaded_encoder.get_feature_names_out()
+    clean_feature_names = [name.split("__")[-1] for name in original_feature_names]
+    
+    df = pd.DataFrame(processed_data, columns=clean_feature_names, dtype=float)
+    
+    #----------------------------------------------------------------------------------------
+    # New features
+    #----------------------------------------------------------------------------------------
+    df["dist_ball_bounce_x_returner_x"] = abs(df["ball_bounce_x"] - df["receiver_x"])
+    df["dist_ball_bounce_y_returner_y"] = abs(df["ball_bounce_y"] - df["receiver_y"])
+    df["dist_ball_bounce_returner_total"] = np.sqrt(
+        df["dist_ball_bounce_x_returner_x"] ** 2 + df["dist_ball_bounce_y_returner_y"] ** 2
+    )
+    
+    df["close_to_side_line"] = df["ball_bounce_y"].apply(
+    lambda y_coord: 1
+    if (
+        (y_coord >= singles_sideline_y - tolerance)
+        | (y_coord <= -singles_sideline_y + tolerance)
+    )
+    else 0
+)
+    df["close_to_center_line"] = df["ball_bounce_y"].apply(
+        lambda y_coord: 1 if ((y_coord >= -tolerance) & (y_coord <= tolerance)) else 0
+    )
+    df["close_to_service_line"] = df["ball_bounce_x"].apply(
+        lambda x_coord: 1 if (x_coord >= service_line_x - tolerance) else 0
+    )   
+    
+    #----------------------------------------------------------------------------------------
+    # Scaling
+    #----------------------------------------------------------------------------------------
+    
+    # Copying column names from 3.Feature_Engineering.ipynb
+    robust_columns = ["ball_hit_y", "ball_bounce_y", "hitter_y", "receiver_y"]
+    standard_columns = [
+        "ball_hit_x",
+        "ball_hit_z",
+        "ball_hit_v",
+        "ball_net_v",
+        "ball_net_z",
+        "ball_net_y",
+        "ball_bounce_x",
+        "ball_bounce_v",
+        "ball_bounce_angle",
+        "hitter_x",
+        "receiver_x",
+        "dist_ball_bounce_x_returner_x",
+        "dist_ball_bounce_y_returner_y",
+        "dist_ball_bounce_returner_total",
+    ]
+    non_scaled_columns = [
+        "surface_clay",
+        "surface_hard",
+        "serve_side_deuce",
+        "hitter_hand_left",
+        "receiver_hand_left",
+        "serve_number",
+        "close_to_side_line",
+        "close_to_center_line",
+        "close_to_service_line",
+    ]
+    
+    # Transform data
+    loaded_scaler = joblib.load('scaler.joblib')
+    processed_data = loaded_scaler.transform(df)
+
+    # Convert back to a DataFrame with appropriate column names
+    df = pd.DataFrame(processed_data, columns=robust_columns + standard_columns + non_scaled_columns)
+    
+    #----------------------------------------------------------------------------------------
+    # Dropping correlated columns
+    #----------------------------------------------------------------------------------------
+    
+    columns_to_drop = [
+        "hitter_y",
+        "dist_ball_bounce_returner_total",
+        "ball_net_v",
+        "ball_net_y",
+    ]
+    df = df.drop(columns=columns_to_drop)
+
+
     
     return df
