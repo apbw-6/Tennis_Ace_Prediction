@@ -23,10 +23,6 @@ import joblib
 import warnings
 warnings.filterwarnings("ignore")
 
-# Other utilities
-import tennis_utils
-import dataframe_utils
-
 # Display all columns
 pd.set_option("display.max_columns", None)
 # Palette
