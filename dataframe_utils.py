@@ -1,11 +1,6 @@
 import pandas as pd
 import numpy as np
-from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import train_test_split
 import joblib
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import RobustScaler, StandardScaler
 
 # Constants
 baseline_x = 11.885
@@ -229,7 +224,5 @@ def feature_engineer(df):
         "ball_net_y",
     ]
     df = df.drop(columns=columns_to_drop)
-
-
     
     return df
