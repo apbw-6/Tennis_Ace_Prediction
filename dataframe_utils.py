@@ -128,7 +128,4 @@ def clean_dataframe(df):
 
 def feature_engineer(df):
     
-    encoder = joblib.load('one_hot_encoder.pkl')
-    
-    
     return df
