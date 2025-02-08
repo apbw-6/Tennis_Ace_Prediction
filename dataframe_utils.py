@@ -112,8 +112,8 @@ def clean_dataframe(df):
     # It is not possible for ball speed to be greater at the net than when the server has just hit the ball. These points must be deleted.
     df = df[df["ball_hit_v"] > df["ball_net_v"]]    
     
-    # Create an imputer that fills missing values with the most frequent category
-    imputer = SimpleImputer(strategy="most_frequent")
+    # Load the saved imputer
+    loaded_imputer = joblib.load("simple_imputer.joblib")
 
     cols_most_frequent = [
         "surface",
@@ -122,7 +122,7 @@ def clean_dataframe(df):
         "hitter_hand",
         "receiver_hand",
     ]
-    df[cols_most_frequent] = imputer.fit_transform(df[cols_most_frequent])
+    df[cols_most_frequent] = loaded_imputer.transform(df[cols_most_frequent])
     
     # Impute missing values with column mean (only for numeric columns)
     df.fillna(df.mean(numeric_only=True), inplace=True)
