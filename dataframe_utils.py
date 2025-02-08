@@ -1,5 +1,5 @@
 # Import everything from my_libraries.py
-from my_libraries import *
+from my_libraries import *  # noqa: F403
 
 # Constants
 baseline_x = 11.885
@@ -133,7 +133,33 @@ def clean_dataframe(df):
 #############################################################################################
 # FEATURE ENGINEERING
 #############################################################################################
+
 def feature_engineer(df):
+    """
+    - Perform one hot encoding for categorical features with the dummy variable trap in mind. 
+    - Add new features:
+        First I want to measure the distance between ball bounce and where the returner is positioned in three ways:
+        - x-displacement between ball bounce and returner's position: if this distance is large then returner has to move more 
+            along the baseline to hit the ball
+        - y-displacement between ball bounce and returner's position
+        - total distance between ball bounce and returner's position
+
+        Next I want to measure how good a serve is by seeing how close it is to the lines: using arbitrary measure of closeness
+        as 10cm (setting tolerence = 10cm). If close, the value is 1, else 0.
+        - close_to_side_line
+        - close_to_center_line: ie down the T
+        - close_to_service_line
+    - Scale the data: Use both Robust and Standard scaling as the features have different distributions.
+    - Use the correlation matrix to see which features have high positive or negative correlation. Use domain knowledge to drop
+        or preserve features. Using a threshold of 0.9 (absolute value).  
+
+    Args:
+        datafarme: for feature engineering
+
+    Returns:
+        dataframe: feature engineering completed
+    """
+    
     #----------------------------------------------------------------------------------------
     # One hot encoding 
     #----------------------------------------------------------------------------------------
