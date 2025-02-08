@@ -2,9 +2,11 @@ import pandas as pd
 import numpy as np
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import OneHotEncoder
+import joblib
 
 def clean_dataframe(df):
     """
+    - Turn object datatype to string
     - Drop duplicates.
     - z-coordinate cannot be negative.
     - It is not possible that the server and the receiver are on the same side of the court. These points must be deleted.
@@ -26,6 +28,10 @@ def clean_dataframe(df):
     baseline_x = 11.885
     service_line_x = 6.4
     singles_sideline_y = 4.115 
+    
+    # Changing object data type to string in the dataframe
+    obj_features = df.select_dtypes(include='object').columns
+    df[obj_features] = df[obj_features].fillna('').astype(str)
     
     # Remove duplicate rows
     df = df.drop_duplicates()
@@ -120,6 +126,9 @@ def clean_dataframe(df):
 ###############################
 # Feature engineering
 
-def feature_engineer(df_train, df_test):
+def feature_engineer(df):
+    
+    encoder = joblib.load('one_hot_encoder.pkl')
+    
     
     return df
