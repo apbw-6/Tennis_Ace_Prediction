@@ -1,5 +1,5 @@
 # Import everything from my_libraries.py
-from my_libraries import *  # noqa: F403
+from my_libraries import *
 
 # Constants
 baseline_x = 11.885
@@ -22,7 +22,6 @@ def clean_dataframe(df):
     - Server position must be close to the baseline and cannot be way inside the court or way behind.
     - Returner position must be near or behind the baseline and cannot be way inside the court.
      Fastest serve speed recorded is 163.7mph. Serve speed cannot exceed this.
-    - Impute missing data with mean and most frequent.
 
     Args:
         datafarme: to be cleaned
@@ -111,6 +110,11 @@ def clean_dataframe(df):
     
     # It is not possible for ball speed to be greater at the net than when the server has just hit the ball. These points must be deleted.
     df = df[df["ball_hit_v"] > df["ball_net_v"]]    
+    
+    return df
+
+def impute_data(df):
+    """ - Impute missing data with mean and most frequent. """
     
     # Load the saved imputer
     loaded_imputer = joblib.load("simple_imputer.joblib")
