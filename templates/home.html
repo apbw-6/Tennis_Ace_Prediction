@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+  <meta charset="UTF-8">
+  <title>ML API</title>
+  <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Arimo' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Hind:300' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css'>
+
+  
+</head>
+
+<body>
+ <div class="login">
+	<h1>Tennis Ace Prediction</h1>
+    <p> Enter the values of a tennis serve that has been called in. Then hit the Predict button to predict whether the serve is an ace or not.</p>
+    <br><br>
+
+     <!-- Main Input For Receiving Query to ML -->
+     
+    <form action="{{ url_for('predict')}}"method="post">
+        <label for="surface">Surface:</label>
+        <select id="surface" name="surface" required>
+            <option value="" disabled selected>Select an option</option>
+            <option value="hard">Hard</option>
+            <option value="grass">Grass</option>
+            <option value="clay">Clay</option>
+        </select>
+        
+        <label for="serve_side">Serve side:</label>
+        <select id="serve_side" name="serve_side" required>
+            <option value="" disabled selected>Select an option</option>
+            <option value="ad">Ad court</option>
+            <option value="deuce">Deuce court</option>
+        </select>
+
+        <label for="serve_number">Serve side:</label>
+        <select id="serve_number" name="serve_number" required>
+            <option value="" disabled selected>Select an option</option>
+            <option value="1">First serve</option>
+            <option value="2">Second serve</option>
+        </select>
+        
+        <!-- Ball hit position -->
+        <label for="ball_hit_y">Ball hit (y-coordinate):</label>
+            <input type="text" id="ball_hit_y" name="ball_hit_y" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br> 
+        
+        <label for="ball_hit_x">Ball hit (x-coordinate):</label>
+            <input type="text" id="ball_hit_x" name="ball_hit_x" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>          
+        
+        <label for="ball_hit_z">Ball hit (z-coordinate):</label>
+            <input type="text" id="ball_hit_z" name="ball_hit_z" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>  
+
+        <!-- Ball hit velocity -->
+        <label for="ball_hit_v">Ball hit velocity (mph):</label>
+            <input type="text" id="ball_hit_v" name="ball_hit_v" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br> 
+        
+        <!-- Ball net details -->  
+        <label for="ball_net_y">Ball over net (y-coordinate):</label>
+            <input type="text" id="ball_net_y" name="ball_net_y" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>  
+        
+        <label for="ball_net_z">Ball over net (z-coordinate):</label>
+            <input type="text" id="ball_net_z" name="ball_net_z" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>          
+        
+        <label for="ball_net_v">Ball over net velocity(mph):</label>
+            <input type="text" id="ball_net_v" name="ball_net_v" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>          
+
+        <!-- Ball bounce details -->  
+        <label for="ball_bounce_x">Ball bounce (x-coordinate):</label>
+            <input type="text" id="ball_bounce_x" name="ball_bounce_x" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>  
+        
+        <label for="ball_bounce_y">Ball bounce (y-coordinate):</label>
+            <input type="text" id="ball_bounce_y" name="ball_bounce_y" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>  
+        
+        <label for="ball_bounce_v">Ball bounce velocity (mph):</label>
+            <input type="text" id="ball_bounce_v" name="ball_bounce_v" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>          
+        
+        <label for="ball_bounce_angle">Ball bounce angle (degrees):</label>
+            <input type="text" id="ball_bounce_angle" name="ball_bounce_angle" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br> 
+        
+        <!-- Server and returener positions -->          
+        <label for="hitter_x">Server position (x-coordinate):</label>
+            <input type="text" id="hitter_x" name="hitter_x" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>         
+
+        <label for="hitter_y">Server position (y-coordinate):</label>
+            <input type="text" id="hitter_y" name="hitter_y" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>         
+    
+        <label for="receiver_x">Returner position (x-coordinate):</label>
+            <input type="text" id="receiver_x" name="receiver_x" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>         
+    
+        <label for="receiver_y">Returner position (y-coordinate):</label>
+            <input type="text" id="receiver_y" name="receiver_y" pattern="-?\d+(\.\d+)?$" required 
+                title="Please enter a valid number"><br><br>   
+    
+        <!-- Server and returner playing hand -->   
+        <label for="hitter_hand">Server's playing hand:</label>
+            <select id="hitter_hand" name="hitter_hand" required>
+                <option value="" disabled selected>Select an option</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+
+        <label for="receiver_hand">Returner's playing hand:</label>
+            <select id="receiver_hand" name="receiver_hand" required>
+                <option value="" disabled selected>Select an option</option>
+                <option value="left">Left</option>
+                <option value="right">Right</option>
+
+
+        <button type="submit" class="btn btn-primary btn-block btn-large">Predict</button>
+    </form>
+
+   <br>
+   <br>
+  
+   
+ </div>
+ {{prediction_text}}
+
+</body>
+</html>
