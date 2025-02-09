@@ -2,6 +2,7 @@ import joblib
 from flask import Flask, request, app, jsonify, render_template
 import numpy as np
 import pandas as pd
+import dataframe_utils
 
 app = Flask(__name__)
 
@@ -13,79 +14,56 @@ model = joblib.load("model.joblib")
 def home():
     return render_template("home.html")  # home.html yet to be created
 
-
-@app.route("/predict_api", methods=["POST"])
-def predict_api():
-    data = request.json["data"]
-
-    # We want to treat data as a dataframe and copy all actions that were done on test data set.
-    df = pd.DataFrame([data])
-    
-    df["households"] = np.log(df["households"] + 1)
-    df["population"] = np.log(df["population"] + 1)
-    df["total_bedrooms"] = np.log(df["total_bedrooms"] + 1)
-    df["total_rooms"] = np.log(df["total_rooms"] + 1)
-
-    # One-hot-encoding
-    df["<1H OCEAN"] = 0
-    df["INLAND"] = 0
-    df["ISLAND"] = 0
-    df["NEAR BAY"] = 0
-    df["NEAR OCEAN"] = 0
-    df[df["ocean_proximity"][0]] = 1
-    df = df.drop(columns=["ocean_proximity"])
-
-    df["fraction_of_bedrooms"] = df["total_bedrooms"] / df["total_rooms"]
-    df["rooms_per_household"] = df["total_rooms"] / df["households"]
-
-    prediction = model.predict(df)
-    # model.predict() returns array, and we need the first element
-    print("Prediction: ", prediction[0])
-
-    return jsonify(prediction[0])
     
 @app.route('/predict', methods = ['POST'])
 def predict():
+    
     # Extract form data
     data = {
-        'longitude': request.form['longitude'],
-        'latitude': request.form['latitude'],
-        'housing_median_age': request.form['housing_median_age'],
-        'total_rooms': request.form['total_rooms'],
-        'total_bedrooms': request.form['total_bedrooms'],
-        'population': request.form['population'],
-        'households': request.form['households'],
-        'median_income': request.form['median_income'],
-        'ocean_proximity': request.form['ocean_proximity']
+        'surface': request.form['surface'],
+        'serve_side': request.form['serve_side'],
+        'serve_number': request.form['serve_number'],
+        'ball_hit_y': request.form['ball_hit_y'],
+        'ball_hit_x': request.form['ball_hit_x'],
+        'ball_hit_z': request.form['ball_hit_z'],
+        'ball_hit_v': request.form['ball_hit_v'],
+        'ball_net_v': request.form['ball_net_v'],
+        'ball_net_z': request.form['ball_net_z'],
+        'ball_net_y': request.form['ball_net_y'],
+        'ball_bounce_x': request.form['ball_bounce_x'],
+        'ball_bounce_y': request.form['ball_bounce_y'],
+        'ball_bounce_v': request.form['ball_bounce_v'],
+        'ball_bounce_angle': request.form['ball_bounce_angle'],
+        'hitter_x': request.form['hitter_x'],
+        'hitter_y': request.form['hitter_y'],
+        'receiver_x': request.form['receiver_x'],
+        'receiver_y': request.form['receiver_y'],
+        'hitter_hand': request.form['hitter_hand'],
+        'receiver_hand': request.form['receiver_hand']
     }
     
     # Convert data to a pandas DataFrame
     df = pd.DataFrame([data])
-    # Convert numerical columns to appropriate data types
-    for column in ['longitude', 'latitude', 'housing_median_age', 'total_rooms',
-                   'total_bedrooms', 'population', 'households', 'median_income']:
-        df[column] = pd.to_numeric(df[column], errors='coerce')
     
-    df["households"] = np.log(df["households"] + 1)
-    df["population"] = np.log(df["population"] + 1)
-    df["total_bedrooms"] = np.log(df["total_bedrooms"] + 1)
-    df["total_rooms"] = np.log(df["total_rooms"] + 1)
-
-    # One-hot-encoding
-    df["<1H OCEAN"] = 0
-    df["INLAND"] = 0
-    df["ISLAND"] = 0
-    df["NEAR BAY"] = 0
-    df["NEAR OCEAN"] = 0
-    df[df["ocean_proximity"][0]] = 1
-    df = df.drop(columns=["ocean_proximity"])
-
-    df["fraction_of_bedrooms"] = df["total_bedrooms"] / df["total_rooms"]
-    df["rooms_per_household"] = df["total_rooms"] / df["households"]
-
-    prediction = model.predict(df)
+    # Clean data
+    df = dataframe_utils.clean_dataframe(df)
+    # In case there is some invalid data, df might be empty.
+    if df.shape[0] == 0:
+        return render_template("home.html", prediction_text= 'Invalid data. Please try again.')
     
-    return render_template("home.html", prediction_text= 'The predicted house price is ${:,.2f}.'.format(prediction[0]))
+    # Feature engineering
+    df = dataframe_utils.feature_engineer(df)
+    
+    # Load model
+    saved_model = joblib.load("model.joblib")
+    # Predict
+    pred = saved_model.predict(df)
+    if pred[0] == 0:
+        prediction = 'The serve is not an ace.'
+    else:
+        prediction = 'The serve is an ace.'
+    
+    return render_template("home.html", prediction_text= prediction)
 
 if __name__ == "__main__":
     app.run(debug=True)
