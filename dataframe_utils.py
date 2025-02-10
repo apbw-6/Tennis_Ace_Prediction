@@ -5,7 +5,7 @@ from my_libraries import *
 baseline_x = 11.885
 service_line_x = 6.4
 singles_sideline_y = 4.115
-tolerance = 0.10  # Setting tolerance of 10cm (for new features)
+tolerance = 0.25  # Setting tolerance of 25cm (for new features)
 
 #############################################################################################
 # DATA CLEANING
@@ -251,6 +251,7 @@ def feature_engineer(df):
         "dist_ball_bounce_returner_total",
         "ball_net_v",
         "ball_net_y",
+        "ball_bounce_v"
     ]
     df = df.drop(columns=columns_to_drop)
     

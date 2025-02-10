@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tennis Serve Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px 0px #aaa;
+            width: 50%;
+            margin: auto;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #result {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            text-align: left;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px 0px #aaa;
+            width: 50%;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tennis Serve Prediction</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="fileInput" name="file" accept=".csv" required>
+        <br>
+        <button type="submit">Upload and Predict</button>
+    </form>
+    
+    <div id="result"></div>
+
+    <script>
+        document.getElementById("uploadForm").onsubmit = async function(event) {
+            event.preventDefault();
+            
+            let formData = new FormData();
+            let fileInput = document.getElementById("fileInput");
+            formData.append("file", fileInput.files[0]);
+
+            let response = await fetch("/predict", {
+                method: "POST",
+                body: formData
+            });
+
+            let resultDiv = document.getElementById("result");
+
+            if (response.ok) {
+                let jsonResponse = await response.json();
+                resultDiv.innerHTML = `<h3>Predictions:</h3><pre>${JSON.stringify(jsonResponse, null, 2)}</pre>`;
+            } else {
+                let errorResponse = await response.json();
+                resultDiv.innerHTML = `<h3 style="color: red;">Error:</h3><pre>${JSON.stringify(errorResponse, null, 2)}</pre>`;
+            }
+        };
+    </script>
+</body>
+</html>

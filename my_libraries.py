@@ -18,7 +18,10 @@ from sklearn.compose import ColumnTransformer
 import imblearn
 from imblearn.over_sampling import RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import SMOTE
 from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix
+
 
 # Joblib for saving/loading models
 import joblib
@@ -30,7 +33,8 @@ warnings.filterwarnings("ignore")
 # Display all columns
 pd.set_option("display.max_columns", None)
 # Palette
-sns.set_palette("colorblind")  # Default Seaborn colors
+plt.style.use("ggplot")
+sns.set_palette("muted")
 
 # Constants
 baseline_x = 11.885
