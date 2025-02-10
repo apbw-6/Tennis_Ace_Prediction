@@ -66,7 +66,7 @@ def predict():
     df = dataframe_utils.feature_engineer(df)
     
     # Load model
-    saved_model = joblib.load("model.joblib")
+    saved_model = joblib.load("xgb_model.joblib")
     # Predict
     pred = saved_model.predict(df)
     if pred[0] == 0:
