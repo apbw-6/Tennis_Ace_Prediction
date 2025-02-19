@@ -200,7 +200,23 @@ def feature_engineer(df):
     )
     df["close_to_service_line"] = df["ball_bounce_x"].apply(
         lambda x_coord: 1 if (x_coord >= service_line_x - tolerance) else 0
-    )   
+    )
+    
+    # Define bin edges (adjust based on min/max serve speed from training dataset)
+    data = pd.read_csv('datasets/train_dataset.csv')
+    bin_edges = np.arange(data["ball_hit_v"].min(), data["ball_hit_v"].max() + 2.5, 2.5)
+
+    # Create bin labels
+    df["speed_binning"] = pd.cut(
+        df["ball_hit_v"], bins=bin_edges, right=False
+    )  # Right=False ensures left-inclusive bins
+
+    # Compute mean serve speed per bin
+    bin_means = df.groupby("speed_binning")["ball_hit_v"].transform("mean")
+
+    # Add new column
+    df["bin_mean_speed"] = bin_means.round(1)
+    df.drop(columns="speed_binning", inplace=True)   
     
     #----------------------------------------------------------------------------------------
     # Scaling
