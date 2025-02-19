@@ -116,8 +116,8 @@ def clean_dataframe(df):
 def impute_data(df):
     """ - Impute missing data with mean and most frequent. """
     
-    # Load the saved imputer
-    loaded_imputer = joblib.load("simple_imputer.joblib")
+    # Create an imputer that fills missing values with the most frequent category
+    imputer = SimpleImputer(strategy="most_frequent")
 
     cols_most_frequent = [
         "surface",
@@ -126,9 +126,10 @@ def impute_data(df):
         "hitter_hand",
         "receiver_hand",
     ]
-    df[cols_most_frequent] = loaded_imputer.transform(df[cols_most_frequent])
+    df[cols_most_frequent] = imputer.fit_transform(df[cols_most_frequent])
     
     # Impute missing values with column mean (only for numeric columns)
+    # Note that serve_number will already be imputed before this.
     df.fillna(df.mean(numeric_only=True), inplace=True)
     
     return df
