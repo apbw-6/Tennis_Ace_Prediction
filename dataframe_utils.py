@@ -239,6 +239,7 @@ def feature_engineer(df):
         "dist_ball_bounce_x_returner_x",
         "dist_ball_bounce_y_returner_y",
         "dist_ball_bounce_returner_total",
+        "bin_mean_speed",
     ]
     non_scaled_columns = [
         "surface_clay",
@@ -268,7 +269,8 @@ def feature_engineer(df):
         "dist_ball_bounce_returner_total",
         "ball_net_v",
         "ball_net_y",
-        "ball_bounce_v"
+        "ball_bounce_v",
+        'ball_hit_v'
     ]
     df = df.drop(columns=columns_to_drop)
     
@@ -296,3 +298,47 @@ def scoring():
     print('F1 score:', f_1)
     accuracy_train.append(a_s)
     F1score_train.append(f_1)
+    
+#############################################################################################
+# DISPLAY CORRELATION MATRIX IN CHUNKS
+#############################################################################################    
+    
+def display_correlation_in_chunks(corr_matrix, N=None):
+    """
+    Displays the correlation matrix in chunks of N rows.
+
+    Parameters:
+        corr_matrix (pd.DataFrame): Correlation matrix
+        N (int, optional): Number of rows to display per heatmap. Defaults to full matrix.
+    """
+    if N is None:
+        N = corr_matrix.shape[0]  # Default to full matrix
+
+    total_rows = corr_matrix.shape[0]  # Number of rows in the matrix
+
+    for i in range(0, total_rows, N):  # Iterate in steps of N
+        chunk = corr_matrix.iloc[i : i + N, :]  # Select N rows
+
+        # Create a heatmap for the whole matrix/chunk
+        if N is None: # Whole matrix
+            figsize=(10, 8)  # Adjust height to match chunk size
+            annotation_size = 4
+        else: # Chunk
+            figsize=(12, 3)
+            annotation_size = 6
+        # Create heatmap
+        plt.figure(figsize=figsize)  # Adjust height to match chunk size
+        sns.heatmap(
+            chunk,
+            annot=True,
+            cmap="coolwarm",
+            fmt=".2f",
+            linewidths=0.5,
+            annot_kws={"size": annotation_size},
+            vmin=-1,
+            vmax=1,
+        )
+        plt.title(
+            f"Correlation Matrix Heatmap (Rows {i + 1} to {min(i + N, total_rows)})"
+        )
+        plt.show()
