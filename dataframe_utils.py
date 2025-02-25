@@ -21,7 +21,8 @@ def clean_dataframe(df):
     - <b>Fliping the court</b> to make things simpler. I.e the server will always be on the left and the returner will always be on the right. This shouldn't make any difference to the game.
     - Server position must be close to the baseline and cannot be way inside the court or way behind.
     - Returner position must be near or behind the baseline and cannot be way inside the court.
-     Fastest serve speed recorded is 163.7mph. Serve speed cannot exceed this.
+    - Fastest serve speed recorded is 163.7mph. Serve speed cannot exceed this.
+    - # ball_net_z of 1.5m or above will be deleted. It's not probable that serves that are in go too high above the net.
 
     Args:
         datafarme: to be cleaned
@@ -107,6 +108,9 @@ def clean_dataframe(df):
     
     # Fastest serve speed recorded is 163.7mph. Serve speed cannot exceed this.
     df = df[df["ball_hit_v"] <= 163.7]
+    
+    # ball_net_z of 1.5m or above will be deleted. It's not probable that serves that are in go too high above the net.
+    df = df[df["ball_net_z"] < 1.5]
     
     # It is not possible for ball speed to be greater at the net than when the server has just hit the ball. These points must be deleted.
     df = df[df["ball_hit_v"] > df["ball_net_v"]]    
