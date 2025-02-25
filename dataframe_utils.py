@@ -154,6 +154,10 @@ def feature_engineer(df):
         - close_to_side_line
         - close_to_center_line: ie down the T
         - close_to_service_line
+        
+        I want to also bin some data and delete the old columns
+        - ball_hit_v
+        
     - Scale the data: Use both Robust and Standard scaling as the features have different distributions.
     - Use the correlation matrix to see which features have high positive or negative correlation. Use domain knowledge to drop
         or preserve features. Using a threshold of 0.9 (absolute value).  
@@ -202,21 +206,23 @@ def feature_engineer(df):
         lambda x_coord: 1 if (x_coord >= service_line_x - tolerance) else 0
     )
     
-    # Define bin edges (adjust based on min/max serve speed from training dataset)
-    data = pd.read_csv('datasets/train_dataset.csv')
-    bin_edges = np.arange(data["ball_hit_v"].min(), data["ball_hit_v"].max() + 2.5, 2.5)
+    # # Define bin edges (adjust based on min/max serve speed from training dataset)
+    # data = pd.read_csv('datasets/train_dataset.csv')
+    # bin_edges = np.arange(data["ball_hit_v"].min(), data["ball_hit_v"].max() + 2.5, 2.5)
 
-    # Create bin labels
-    df["speed_binning"] = pd.cut(
-        df["ball_hit_v"], bins=bin_edges, right=False
-    )  # Right=False ensures left-inclusive bins
+    # # Create bin labels
+    # df["speed_binning"] = pd.cut(
+    #     df["ball_hit_v"], bins=bin_edges, right=False
+    # )  # Right=False ensures left-inclusive bins
 
-    # Compute mean serve speed per bin
-    bin_means = df.groupby("speed_binning")["ball_hit_v"].transform("mean")
+    # # Compute mean serve speed per bin
+    # bin_means = df.groupby("speed_binning")["ball_hit_v"].transform("mean")
 
-    # Add new column
-    df["bin_mean_speed"] = bin_means.round(1)
-    df.drop(columns="speed_binning", inplace=True)   
+    # # Add new column and drop some
+    # df["bin_mean_speed"] = bin_means.round(1)
+    # df.drop(columns=["speed_binning", 'ball_hit_v'], inplace=True)   
+    
+    df = binning(df=df, column='ball_hit_v', new_column_name='bin_mean_speed', step_size=2.5, round_up=1, drop_old_column=True)
     
     #----------------------------------------------------------------------------------------
     # Scaling
@@ -269,8 +275,7 @@ def feature_engineer(df):
         "dist_ball_bounce_returner_total",
         "ball_net_v",
         "ball_net_y",
-        "ball_bounce_v",
-        'ball_hit_v'
+        "ball_bounce_v"
     ]
     df = df.drop(columns=columns_to_drop)
     
@@ -342,3 +347,42 @@ def display_correlation_in_chunks(corr_matrix, N=None):
             f"Correlation Matrix Heatmap (Rows {i + 1} to {min(i + N, total_rows)})"
         )
         plt.show()
+
+#############################################################################################
+# FUNCTION FOR BINNING AND TAKING MEAN OF BINNED DATA
+############################################################################################# 
+        
+def binning(df, column, new_column_name, step_size, round_up=4, drop_old_column=False):
+    """
+    Bin data as desired based on training data.
+    
+    Inputs:
+    - df : input dataframe
+    - column : column for binning
+    - new_column_name : name of column for binned and mean transformed data
+    - step_size : for binning
+    - round_up : number of decimal places to round up
+    - drop_old_column : True/False if old column should be dropped
+    
+    Outputs:
+    - dataframe with new binned column
+    """
+    # Define bin edges (adjust based on min/max from training dataset)
+    data = pd.read_csv('datasets/train_dataset.csv')
+    bin_edges = np.arange(data[column].min(), data[column].max() + step_size, step_size)
+
+    # Create bin labels
+    df["column_binning"] = pd.cut(
+        df[column], bins=bin_edges, right=False
+    )  # Right=False ensures left-inclusive bins
+
+    # Compute mean serve speed per bin
+    bin_means = df.groupby("column_binning")[column].transform("mean")
+
+    # Add new column and drop some
+    df[new_column_name] = bin_means.round(round_up)
+    df.drop(columns=["column_binning"], inplace=True)
+    if drop_old_column:
+        df.drop(columns=column, inplace=True)
+        
+    return df              
