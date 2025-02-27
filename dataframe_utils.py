@@ -184,7 +184,7 @@ def feature_engineer(df):
         - close_to_service_line
         
         I want to also bin some data and delete the old columns
-        - ball_hit_v
+        - ball_hit_v, ..., ...
         
     - Scale the data: Use both Robust and Standard scaling as the features have different distributions.
     - Use the correlation matrix to see which features have high positive or negative correlation. Use domain knowledge to drop
@@ -234,23 +234,30 @@ def feature_engineer(df):
         lambda x_coord: 1 if (x_coord >= service_line_x - tolerance) else 0
     )
     
-    # # Define bin edges (adjust based on min/max serve speed from training dataset)
-    # data = pd.read_csv('datasets/train_dataset.csv')
-    # bin_edges = np.arange(data["ball_hit_v"].min(), data["ball_hit_v"].max() + 2.5, 2.5)
-
-    # # Create bin labels
-    # df["speed_binning"] = pd.cut(
-    #     df["ball_hit_v"], bins=bin_edges, right=False
-    # )  # Right=False ensures left-inclusive bins
-
-    # # Compute mean serve speed per bin
-    # bin_means = df.groupby("speed_binning")["ball_hit_v"].transform("mean")
-
-    # # Add new column and drop some
-    # df["bin_mean_speed"] = bin_means.round(1)
-    # df.drop(columns=["speed_binning", 'ball_hit_v'], inplace=True)   
-    
-    df = binning(df=df, column='ball_hit_v', new_column_name='bin_mean_speed', step_size=2.5, round_up=1, drop_old_column=True)
+    df = binning(
+        df=df,
+        column="ball_hit_v",
+        new_column_name="bin_mean_speed",
+        step_size=2.5,
+        round_up=1,
+        drop_old_column=True,
+    )
+    df = binning(
+        df=df,
+        column="ball_hit_y",
+        new_column_name="bin_mean_ball_hit_y",
+        step_size=0.4,
+        round_up=3,
+        drop_old_column=True,
+    )
+    df = binning(
+        df=df,
+        column="ball_hit_z",
+        new_column_name="bin_mean_ball_hit_z",
+        step_size=0.1,
+        round_up=3,
+        drop_old_column=True,
+    )
     
     #----------------------------------------------------------------------------------------
     # Scaling
