@@ -22,7 +22,7 @@ def clean_dataframe(df):
     - Server position must be close to the baseline and cannot be way inside the court or way behind.
     - Returner position must be near or behind the baseline and cannot be way inside the court.
     - Fastest serve speed recorded is 163.7mph. Serve speed cannot exceed this.
-    - # ball_net_z of 1.5m or above will be deleted. It's not probable that serves that are in go too high above the net.
+    - ball_net_z of 1.5m or above will be deleted. It's not probable that serves that are in go too high above the net. And height should be greater than 0.915m
 
     Args:
         datafarme: to be cleaned
@@ -109,11 +109,34 @@ def clean_dataframe(df):
     # Fastest serve speed recorded is 163.7mph. Serve speed cannot exceed this.
     df = df[df["ball_hit_v"] <= 163.7]
     
-    # ball_net_z of 1.5m or above will be deleted. It's not probable that serves that are in go too high above the net.
-    df = df[df["ball_net_z"] < 1.5]
+    # ball_net_z of 1.5m or above will be deleted. It's not probable that serves that are in go too high above the net. 
+    # And height should be greater than 0.915m
+    df = df[(df["ball_net_z"] < 1.5) & (df["ball_net_z"] >= 0.915)]
     
     # It is not possible for ball speed to be greater at the net than when the server has just hit the ball. These points must be deleted.
-    df = df[df["ball_hit_v"] > df["ball_net_v"]]    
+    df = df[df["ball_hit_v"] > df["ball_net_v"]]   
+    
+    df.to_csv("datasets/train_dataset.csv")
+    
+    # Deleting points outside IQR bounds
+    columns = [
+        'ball_hit_y', 'ball_hit_x',
+        'ball_hit_z', 'ball_hit_v', 'ball_net_v', 'ball_net_z', 'ball_net_y',
+        'ball_bounce_x', 'ball_bounce_y', 'ball_bounce_v', 'ball_bounce_angle',
+        'hitter_x', 'hitter_y', 'receiver_x', 'receiver_y'
+    ]
+    train_df = pd.read_csv('datasets/train_dataset.csv')
+    # Compute IQR using TRAINING data
+    Q1_train = train_df[columns].quantile(0.25)
+    Q3_train = train_df[columns].quantile(0.75)
+    IQR_train = Q3_train - Q1_train
+
+    # Define bounds using training data
+    lower_bound = Q1_train - 1.5 * IQR_train
+    upper_bound = Q3_train + 1.5 * IQR_train
+    
+    for col in columns:
+        df = df[(df[col] >= lower_bound[col]) & (df[col] <= upper_bound[col])] 
     
     return df
 
