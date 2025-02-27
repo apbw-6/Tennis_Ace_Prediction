@@ -23,7 +23,8 @@ def clean_dataframe(df):
     - Returner position must be near or behind the baseline and cannot be way inside the court.
     - Fastest serve speed recorded is 163.7mph. Serve speed cannot exceed this.
     - ball_net_z of 1.5m or above will be deleted. It's not probable that serves that are in go too high above the net. And height should be greater than 0.915m
-
+    - - Delete outliers based on Inter Quartile Range of training data.
+    
     Args:
         datafarme: to be cleaned
 
@@ -256,11 +257,9 @@ def feature_engineer(df):
     #----------------------------------------------------------------------------------------
     
     # Copying column names from 3.Feature_Engineering.ipynb
-    robust_columns = ["ball_hit_y", "ball_bounce_y", "hitter_y", "receiver_y"]
+    robust_columns = ["bin_mean_ball_hit_y", "ball_bounce_y", "hitter_y", "receiver_y"]
     standard_columns = [
         "ball_hit_x",
-        "ball_hit_z",
-        "ball_hit_v",
         "ball_net_v",
         "ball_net_z",
         "ball_net_y",
@@ -273,6 +272,7 @@ def feature_engineer(df):
         "dist_ball_bounce_y_returner_y",
         "dist_ball_bounce_returner_total",
         "bin_mean_speed",
+        "bin_mean_ball_hit_z",
     ]
     non_scaled_columns = [
         "surface_clay",
@@ -298,12 +298,13 @@ def feature_engineer(df):
     #----------------------------------------------------------------------------------------
     
     columns_to_drop = [
-        "hitter_y",
-        "dist_ball_bounce_returner_total",
-        "ball_net_v",
-        "ball_net_y",
-        "ball_bounce_v"
-    ]
+    "hitter_y",
+    "dist_ball_bounce_returner_total",
+    "ball_net_v",
+    "ball_net_y",
+    "ball_bounce_v",
+    "serve_side_deuce",
+]
     df = df.drop(columns=columns_to_drop)
     
     return df
