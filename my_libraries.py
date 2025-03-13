@@ -18,9 +18,9 @@ from sklearn.compose import ColumnTransformer
 import imblearn
 from imblearn.over_sampling import RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
-from imblearn.over_sampling import SMOTE
-from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
-from sklearn.metrics import classification_report, confusion_matrix
+from imblearn.over_sampling import SMOTE, BorderlineSMOTE
+from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import classification_report, roc_curve, auc
 
 
 # Joblib for saving/loading models
