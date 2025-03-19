@@ -21,6 +21,7 @@ from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import SMOTE, BorderlineSMOTE
 from sklearn.metrics import confusion_matrix, accuracy_score, precision_score, recall_score, f1_score
 from sklearn.metrics import classification_report, roc_curve, auc
+from sklearn.neighbors import NearestNeighbors
 
 
 # Joblib for saving/loading models
