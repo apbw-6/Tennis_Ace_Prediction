@@ -5,7 +5,7 @@ from my_libraries import *
 baseline_x = 11.885
 service_line_x = 6.4
 singles_sideline_y = 4.115
-tolerance = 0.25  # Setting tolerance of 25cm (for new features)
+tolerance = 0.25  # Setting tolerance (in meters) for new features
 
 #############################################################################################
 # DATA CLEANING
@@ -316,29 +316,6 @@ def feature_engineer(df):
     
     return df
 
-#############################################################################################
-# MODEL SCORES
-#############################################################################################
-
-def scoring():
-    """ A function to print scores and save them in lists. """
-    
-    print("-----Test Data Accuracy----")
-    a_s = round(accuracy_score(y_test.to_numpy(), y_pred), 4)
-    print('Accuracy score:', a_s)
-    f_1 = round(f1_score(y_test.to_numpy(), y_pred), 4)
-    print('F1 score:', f_1)
-    accuracy_test.append(a_s)
-    F1score_test.append(f_1)
-
-    print("\n-----Train Data Accuracy----")
-    a_s = round(accuracy_score(y_train.to_numpy(), y_pred_train), 4)
-    print('Accuracy score:', a_s)
-    f_1 = round(f1_score(y_train.to_numpy(), y_pred_train), 4)
-    print('F1 score:', f_1)
-    accuracy_train.append(a_s)
-    F1score_train.append(f_1)
-    
 #############################################################################################
 # DISPLAY CORRELATION MATRIX IN CHUNKS
 #############################################################################################    
