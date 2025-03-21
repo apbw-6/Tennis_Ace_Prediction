@@ -238,7 +238,7 @@ def feature_engineer(df):
         df=df,
         column="ball_hit_v",
         new_column_name="bin_mean_speed",
-        step_size=2.5,
+        step_size=1,
         round_up=1,
         drop_old_column=True,
     )
