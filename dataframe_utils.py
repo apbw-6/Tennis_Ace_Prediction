@@ -21,8 +21,10 @@ def clean_dataframe(df):
     - <b>Fliping the court</b> to make things simpler. I.e the server will always be on the left and the returner will always be on the right. This shouldn't make any difference to the game.
     - Server position must be close to the baseline and cannot be way inside the court or way behind.
     - Returner position must be near or behind the baseline and cannot be way inside the court.
-     Fastest serve speed recorded is 163.7mph. Serve speed cannot exceed this.
-
+    - Fastest serve speed recorded is 163.7mph. Serve speed cannot exceed this.
+    - ball_net_z of 1.5m or above will be deleted. It's not probable that serves that are in go too high above the net. And height should be greater than 0.915m
+    - - Delete outliers based on Inter Quartile Range of training data.
+    
     Args:
         datafarme: to be cleaned
 
@@ -108,16 +110,42 @@ def clean_dataframe(df):
     # Fastest serve speed recorded is 163.7mph. Serve speed cannot exceed this.
     df = df[df["ball_hit_v"] <= 163.7]
     
+    # ball_net_z of 1.5m or above will be deleted. It's not probable that serves that are in go too high above the net. 
+    # And height should be greater than 0.915m
+    df = df[(df["ball_net_z"] < 1.5) & (df["ball_net_z"] >= 0.915)]
+    
     # It is not possible for ball speed to be greater at the net than when the server has just hit the ball. These points must be deleted.
-    df = df[df["ball_hit_v"] > df["ball_net_v"]]    
+    df = df[df["ball_hit_v"] > df["ball_net_v"]]   
+    
+    df.to_csv("datasets/train_dataset.csv")
+    
+    # Deleting points outside IQR bounds
+    columns = [
+        'ball_hit_y', 'ball_hit_x',
+        'ball_hit_z', 'ball_hit_v', 'ball_net_v', 'ball_net_z', 'ball_net_y',
+        'ball_bounce_x', 'ball_bounce_y', 'ball_bounce_v', 'ball_bounce_angle',
+        'hitter_x', 'hitter_y', 'receiver_x', 'receiver_y'
+    ]
+    train_df = pd.read_csv('datasets/train_dataset.csv')
+    # Compute IQR using TRAINING data
+    Q1_train = train_df[columns].quantile(0.25)
+    Q3_train = train_df[columns].quantile(0.75)
+    IQR_train = Q3_train - Q1_train
+
+    # Define bounds using training data
+    lower_bound = Q1_train - 1.5 * IQR_train
+    upper_bound = Q3_train + 1.5 * IQR_train
+    
+    for col in columns:
+        df = df[(df[col] >= lower_bound[col]) & (df[col] <= upper_bound[col])] 
     
     return df
 
 def impute_data(df):
     """ - Impute missing data with mean and most frequent. """
     
-    # Load the saved imputer
-    loaded_imputer = joblib.load("simple_imputer.joblib")
+    # Create an imputer that fills missing values with the most frequent category
+    imputer = SimpleImputer(strategy="most_frequent")
 
     cols_most_frequent = [
         "surface",
@@ -126,9 +154,10 @@ def impute_data(df):
         "hitter_hand",
         "receiver_hand",
     ]
-    df[cols_most_frequent] = loaded_imputer.transform(df[cols_most_frequent])
+    df[cols_most_frequent] = imputer.fit_transform(df[cols_most_frequent])
     
     # Impute missing values with column mean (only for numeric columns)
+    # Note that serve_number will already be imputed before this.
     df.fillna(df.mean(numeric_only=True), inplace=True)
     
     return df
@@ -153,6 +182,10 @@ def feature_engineer(df):
         - close_to_side_line
         - close_to_center_line: ie down the T
         - close_to_service_line
+        
+        I want to also bin some data and delete the old columns
+        - ball_hit_v, ..., ...
+        
     - Scale the data: Use both Robust and Standard scaling as the features have different distributions.
     - Use the correlation matrix to see which features have high positive or negative correlation. Use domain knowledge to drop
         or preserve features. Using a threshold of 0.9 (absolute value).  
@@ -199,18 +232,41 @@ def feature_engineer(df):
     )
     df["close_to_service_line"] = df["ball_bounce_x"].apply(
         lambda x_coord: 1 if (x_coord >= service_line_x - tolerance) else 0
-    )   
+    )
+    
+    df = binning(
+        df=df,
+        column="ball_hit_v",
+        new_column_name="bin_mean_speed",
+        step_size=2.5,
+        round_up=1,
+        drop_old_column=True,
+    )
+    df = binning(
+        df=df,
+        column="ball_hit_y",
+        new_column_name="bin_mean_ball_hit_y",
+        step_size=0.4,
+        round_up=3,
+        drop_old_column=True,
+    )
+    df = binning(
+        df=df,
+        column="ball_hit_z",
+        new_column_name="bin_mean_ball_hit_z",
+        step_size=0.1,
+        round_up=3,
+        drop_old_column=True,
+    )
     
     #----------------------------------------------------------------------------------------
     # Scaling
     #----------------------------------------------------------------------------------------
     
     # Copying column names from 3.Feature_Engineering.ipynb
-    robust_columns = ["ball_hit_y", "ball_bounce_y", "hitter_y", "receiver_y"]
+    robust_columns = ["bin_mean_ball_hit_y", "ball_bounce_y", "hitter_y", "receiver_y"]
     standard_columns = [
         "ball_hit_x",
-        "ball_hit_z",
-        "ball_hit_v",
         "ball_net_v",
         "ball_net_z",
         "ball_net_y",
@@ -222,6 +278,8 @@ def feature_engineer(df):
         "dist_ball_bounce_x_returner_x",
         "dist_ball_bounce_y_returner_y",
         "dist_ball_bounce_returner_total",
+        "bin_mean_speed",
+        "bin_mean_ball_hit_z",
     ]
     non_scaled_columns = [
         "surface_clay",
@@ -247,12 +305,13 @@ def feature_engineer(df):
     #----------------------------------------------------------------------------------------
     
     columns_to_drop = [
-        "hitter_y",
-        "dist_ball_bounce_returner_total",
-        "ball_net_v",
-        "ball_net_y",
-        "ball_bounce_v"
-    ]
+    "hitter_y",
+    "dist_ball_bounce_returner_total",
+    "ball_net_v",
+    "ball_net_y",
+    "ball_bounce_v",
+    "serve_side_deuce",
+]
     df = df.drop(columns=columns_to_drop)
     
     return df
@@ -279,3 +338,86 @@ def scoring():
     print('F1 score:', f_1)
     accuracy_train.append(a_s)
     F1score_train.append(f_1)
+    
+#############################################################################################
+# DISPLAY CORRELATION MATRIX IN CHUNKS
+#############################################################################################    
+    
+def display_correlation_in_chunks(corr_matrix, N=None):
+    """
+    Displays the correlation matrix in chunks of N rows.
+
+    Parameters:
+        corr_matrix (pd.DataFrame): Correlation matrix
+        N (int, optional): Number of rows to display per heatmap. Defaults to full matrix.
+    """
+    if N is None:
+        N = corr_matrix.shape[0]  # Default to full matrix
+
+    total_rows = corr_matrix.shape[0]  # Number of rows in the matrix
+
+    for i in range(0, total_rows, N):  # Iterate in steps of N
+        chunk = corr_matrix.iloc[i : i + N, :]  # Select N rows
+
+        # Create a heatmap for the whole matrix/chunk
+        if N is None: # Whole matrix
+            figsize=(10, 8)  # Adjust height to match chunk size
+            annotation_size = 4
+        else: # Chunk
+            figsize=(12, 3)
+            annotation_size = 6
+        # Create heatmap
+        plt.figure(figsize=figsize)  # Adjust height to match chunk size
+        sns.heatmap(
+            chunk,
+            annot=True,
+            cmap="coolwarm",
+            fmt=".2f",
+            linewidths=0.5,
+            annot_kws={"size": annotation_size},
+            vmin=-1,
+            vmax=1,
+        )
+        plt.title(
+            f"Correlation Matrix Heatmap (Rows {i + 1} to {min(i + N, total_rows)})"
+        )
+        plt.show()
+
+#############################################################################################
+# FUNCTION FOR BINNING AND TAKING MEAN OF BINNED DATA
+############################################################################################# 
+        
+def binning(df, column, new_column_name, step_size, round_up=4, drop_old_column=False):
+    """
+    Bin data as desired based on training data.
+    
+    Inputs:
+    - df : input dataframe
+    - column : column for binning
+    - new_column_name : name of column for binned and mean transformed data
+    - step_size : for binning
+    - round_up : number of decimal places to round up
+    - drop_old_column : True/False if old column should be dropped
+    
+    Outputs:
+    - dataframe with new binned column
+    """
+    # Define bin edges (adjust based on min/max from training dataset)
+    data = pd.read_csv('datasets/train_dataset.csv')
+    bin_edges = np.arange(data[column].min(), data[column].max() + step_size, step_size)
+
+    # Create bin labels
+    df["column_binning"] = pd.cut(
+        df[column], bins=bin_edges, right=False
+    )  # Right=False ensures left-inclusive bins
+
+    # Compute mean serve speed per bin
+    bin_means = df.groupby("column_binning")[column].transform("mean")
+
+    # Add new column and drop some
+    df[new_column_name] = bin_means.round(round_up)
+    df.drop(columns=["column_binning"], inplace=True)
+    if drop_old_column:
+        df.drop(columns=column, inplace=True)
+        
+    return df              
